@@ -1,0 +1,58 @@
+<%# guide.ejs - explains the UV index scale and the skin types %>
+<%- include('../partials/header', { title }) %>
+
+<div class="container narrow guide">
+  <p class="eyebrow">UV Guide</p>
+  <h1>Understanding the UV index</h1>
+  <p class="lead">
+    The UV index measures how strong the sun's ultraviolet radiation is at a place and time.
+    The higher the number, the faster unprotected skin and eyes can be damaged.
+    It's usually highest around solar noon, and can be high even on cool or cloudy days.
+  </p>
+
+  <h2>The WHO scale</h2>
+  <div class="level-list">
+    <% levels.forEach((level) => { %>
+      <article class="level-row">
+        <div class="level-badge" style="background: <%= level.color %>; color: <%= level.text %>">
+          <strong><%= level.max === Infinity ? level.min + '+' : level.min + '–' + level.max %></strong>
+          <span><%= level.name %></span>
+        </div>
+        <div>
+          <p><%= level.summary %></p>
+          <ul>
+            <% level.advice.forEach((tip) => { %><li><%= tip %></li><% }) %>
+          </ul>
+        </div>
+      </article>
+    <% }) %>
+  </div>
+
+  <h2 id="skin-types">Skin types</h2>
+  <p>
+    SunSafety uses the six Fitzpatrick skin types. Pick the one that best describes how your skin
+    reacts to the sun when you haven't used sunscreen.
+  </p>
+  <div class="skin-grid">
+    <% skinTypes.forEach((type) => { %>
+      <article class="skin-tile">
+        <span class="swatch" style="background: <%= type.swatch %>"></span>
+        <h3>Type <%= type.roman %> · <%= type.label %></h3>
+        <p><%= type.description %></p>
+      </article>
+    <% }) %>
+  </div>
+
+  <div class="card note">
+    <h2>About the burn times</h2>
+    <p>
+      "Time to burn" is an estimate from OpenUV of how long unprotected skin can be in the sun
+      at the current UV level. Sunscreen, shade and clothing extend it, while reflections from
+      water, sand and snow shorten it. Treat it as a guide, not a guarantee.
+    </p>
+  </div>
+
+  <p><a class="btn btn-primary" href="/">Check the UV where you are</a></p>
+</div>
+
+<%- include('../partials/footer') %>

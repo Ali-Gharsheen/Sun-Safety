@@ -1,0 +1,189 @@
+<%#
+  results.ejs - the UV report for one place.
+  All numbers are prepared in utils/report.js; this template only displays them.
+%>
+<%- include('../partials/header', { title }) %>
+
+<div class="container results">
+
+  <%# ---- Place heading ---- %>
+  <div class="results-head">
+    <div>
+      <a class="back-link" href="/">← New search</a>
+      <h1><%= report.place %></h1>
+      <p class="muted">
+        <%= report.localNow %> · <%= report.coords %> · times shown in <%= report.timeZone %>
+      </p>
+    </div>
+  </div>
+
+  <div class="results-grid">
+
+    <%# ---- Current UV (big coloured card) ---- %>
+    <section class="card uv-card" style="--level-bg: <%= report.current.level.color %>; --level-text: <%= report.current.level.text %>;">
+      <p class="card-label">UV index right now</p>
+      <div class="uv-reading">
+        <span class="uv-number"><%= report.current.uv %></span>
+        <span class="uv-level"><%= report.current.level.name %></span>
+      </div>
+      <p class="uv-summary"><%= report.current.level.summary %></p>
+
+      <%#
+        WHO colour bar drawn on a 0-12 scale, with a marker at the current value.
+        Each segment's width = how many index points it covers (Extreme gets 1).
+      %>
+      <div class="scale-bar" aria-hidden="true">
+        <% report.scale.forEach((level) => { %>
+          <span style="background: <%= level.color %>; flex: <%= level.max === Infinity ? 1 : level.max - level.min + 1 %>"></span>
+        <% }) %>
+        <span class="scale-marker" style="left: <%= report.current.markerPercent %>%"></span>
+      </div>
+      <div class="scale-labels" aria-hidden="true">
+        <% report.scale.forEach((level) => { %>
+          <span style="left: <%= level.min / 12 * 100 %>%"><%= level.max === Infinity ? level.min + '+' : level.min %></span>
+        <% }) %>
+      </div>
+
+      <p class="small">Reading at <%= report.updatedAt %></p>
+    </section>
+
+    <%# ---- Quick facts ---- %>
+    <section class="card facts-card">
+      <dl class="facts">
+        <div>
+          <dt>Today's peak</dt>
+          <dd>
+            <span class="pill" style="background: <%= report.peak.level.color %>; color: <%= report.peak.level.text %>"><%= report.peak.uv %></span>
+            at <%= report.peak.time %>
+          </dd>
+        </div>
+        <div>
+          <dt>Sunrise</dt>
+          <dd><%= report.sun.sunrise %></dd>
+        </div>
+        <div>
+          <dt>Solar noon</dt>
+          <dd><%= report.sun.solarNoon %></dd>
+        </div>
+        <div>
+          <dt>Sunset</dt>
+          <dd><%= report.sun.sunset %></dd>
+        </div>
+        <% if (report.ozone) { %>
+          <div>
+            <dt>Ozone</dt>
+            <dd><%= report.ozone %> DU</dd>
+          </div>
+        <% } %>
+      </dl>
+    </section>
+
+    <%# ---- Protection window ---- %>
+    <section class="card protection-card <%= report.protection.needed ? 'is-needed' : '' %>">
+      <p class="card-label">Sunscreen hours today</p>
+      <% if (report.protection.needed) { %>
+        <p class="big-time"><%= report.protection.from %> <span>–</span> <%= report.protection.to %></p>
+        <p>UV is <%= report.protection.threshold %> or higher in this window. Protect your skin whenever you're outdoors during these hours.</p>
+      <% } else { %>
+        <p class="big-time calm">Not needed</p>
+        <p>UV stays below <%= report.protection.threshold %> today, so most people don't need sunscreen. Sunglasses are still a good idea on bright days.</p>
+      <% } %>
+    </section>
+
+    <%# ---- Advice for the user's skin type ---- %>
+    <section class="card skin-card">
+      <div class="skin-head">
+        <span class="swatch" style="background: <%= report.skin.swatch %>"></span>
+        <div>
+          <p class="card-label">Your skin · Type <%= report.skin.roman %></p>
+          <h2><%= report.skin.label %></h2>
+        </div>
+      </div>
+
+      <div class="skin-stats">
+        <div>
+          <span class="stat-label">Time to burn without sunscreen</span>
+          <span class="stat-value"><%= report.skin.burnTime || 'No burn risk now' %></span>
+        </div>
+        <div>
+          <span class="stat-label">Suggested sunscreen</span>
+          <span class="stat-value"><%= report.skin.spf %></span>
+        </div>
+      </div>
+
+      <h3>What to do now</h3>
+      <ul class="advice">
+        <% report.current.level.advice.forEach((tip) => { %>
+          <li><%= tip %></li>
+        <% }) %>
+      </ul>
+
+      <%# Switch skin type without searching again (reuses the same location) %>
+      <form class="inline-form" action="/results" method="GET">
+        <input type="hidden" name="lat" value="<%= query.lat %>">
+        <input type="hidden" name="lng" value="<%= query.lng %>">
+        <input type="hidden" name="alt" value="<%= query.alt %>">
+        <input type="hidden" name="place" value="<%= query.place %>">
+        <input type="hidden" name="tz" value="<%= query.tz %>">
+        <label for="skin-switch">Change skin type</label>
+        <select id="skin-switch" name="skin">
+          <% skinTypes.forEach((type) => { %>
+            <option value="<%= type.id %>" <%= type.id === report.skin.id ? 'selected' : '' %>>Type <%= type.roman %> · <%= type.label %></option>
+          <% }) %>
+        </select>
+        <button type="submit" class="btn btn-small">Update</button>
+      </form>
+    </section>
+
+    <%# ---- Hourly forecast: chart + table ---- %>
+    <section class="card forecast-card">
+      <div class="forecast-head">
+        <h2>Today's UV forecast</h2>
+        <ul class="legend" aria-label="UV levels">
+          <% report.scale.forEach((level) => { %>
+            <li><span style="background: <%= level.color %>"></span><%= level.name %></li>
+          <% }) %>
+        </ul>
+      </div>
+
+      <% if (report.hourly.length) { %>
+        <div class="chart-wrap">
+          <canvas id="forecast-chart" aria-label="Bar chart of UV index by hour" role="img"></canvas>
+        </div>
+
+        <details class="forecast-table-wrap">
+          <summary>Show hourly numbers</summary>
+          <div class="table-scroll">
+            <table class="forecast-table">
+              <thead>
+                <tr><th scope="col">Time</th><th scope="col">UV index</th><th scope="col">Level</th></tr>
+              </thead>
+              <tbody>
+                <% report.hourly.forEach((hour) => { %>
+                  <tr>
+                    <td><%= hour.time %></td>
+                    <td><span class="pill" style="background: <%= hour.color %>; color: <%= hour.textColor %>"><%= hour.uv.toFixed(1) %></span></td>
+                    <td><%= hour.level %></td>
+                  </tr>
+                <% }) %>
+              </tbody>
+            </table>
+          </div>
+        </details>
+
+        <%#
+          Hand the forecast to the browser as JSON for Chart.js.
+          "<" is escaped so the data can never close this <script> tag early.
+        %>
+        <script type="application/json" id="forecast-data"><%- JSON.stringify(report.hourly).replace(/</g, '\\u003c') %></script>
+      <% } else { %>
+        <p class="muted">No hourly forecast is available for this place today (for example during polar night).</p>
+      <% } %>
+    </section>
+  </div>
+</div>
+
+<%# Chart.js from a CDN, then our own script that draws the chart %>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js" defer></script>
+<script src="/js/forecast-chart.js" defer></script>
+<%- include('../partials/footer') %>

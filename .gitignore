@@ -1,0 +1,10 @@
+# Dependencies are reinstalled with "npm i"
+node_modules/
+
+# Secrets - keep your API key out of Git
+.env
+
+# Logs and OS clutter
+npm-debug.log*
+.DS_Store
+Thumbs.db

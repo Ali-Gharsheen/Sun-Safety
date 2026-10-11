@@ -1,0 +1,17 @@
+<%#
+  error.ejs - shown for 404s and for any error caught by the central error
+  handler in index.js. "message" is always a user-friendly text, never a stack trace.
+%>
+<%- include('../partials/header', { title }) %>
+
+<div class="container narrow error-page">
+  <p class="error-code"><%= status %></p>
+  <h1><%= heading %></h1>
+  <p class="lead"><%= message %></p>
+  <div class="form-actions">
+    <a class="btn btn-primary" href="/">Back to search</a>
+    <a class="btn btn-secondary" href="/guide">Read the UV Guide</a>
+  </div>
+</div>
+
+<%- include('../partials/footer') %>

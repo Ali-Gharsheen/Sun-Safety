@@ -1,0 +1,45 @@
+<%#
+  searchForm.ejs - the city / "use my location" form.
+  Expects: skinTypes (array), values (what the user typed before, may be empty)
+%>
+<form class="search-form" id="search-form" action="/check" method="POST" novalidate>
+  <div class="field">
+    <label for="city">City</label>
+    <input
+      type="text"
+      id="city"
+      name="city"
+      placeholder="e.g. Multan, Lisbon, Sydney"
+      value="<%= values.city || '' %>"
+      autocomplete="address-level2"
+      maxlength="100">
+  </div>
+
+  <div class="field">
+    <label for="skinType">Your skin type</label>
+    <select id="skinType" name="skinType" required>
+      <option value="" disabled <%= values.skinType ? '' : 'selected' %>>Choose your skin type</option>
+      <% skinTypes.forEach((type) => { %>
+        <option value="<%= type.id %>" <%= String(values.skinType) === String(type.id) ? 'selected' : '' %>>
+          Type <%= type.roman %> · <%= type.label %> (<%= type.description.toLowerCase() %>)
+        </option>
+      <% }) %>
+    </select>
+    <a class="field-hint" href="/guide#skin-types">Not sure? See the skin type guide</a>
+  </div>
+
+  <%# Filled in by public/js/main.js when "Use my location" is clicked %>
+  <input type="hidden" name="lat" id="lat">
+  <input type="hidden" name="lng" id="lng">
+  <input type="hidden" name="tz" id="tz">
+
+  <div class="form-actions">
+    <button type="submit" class="btn btn-primary">Check UV</button>
+    <button type="button" class="btn btn-secondary" id="use-location">
+      <svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/><circle cx="12" cy="12" r="7"/></svg>
+      Use my location
+    </button>
+  </div>
+
+  <p class="form-status" id="form-status" role="status" aria-live="polite"></p>
+</form>

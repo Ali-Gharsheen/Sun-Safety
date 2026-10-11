@@ -1,0 +1,47 @@
+<%# index.ejs - home page: intro + search form %>
+<%- include('../partials/header', { title }) %>
+
+<section class="hero">
+  <div class="container hero-inner">
+    <div class="hero-text">
+      <p class="eyebrow">Know before you go out</p>
+      <h1>How strong is the sun <em>today?</em></h1>
+      <p class="lead">
+        Search any city to see the live UV index, when you'll need sunscreen,
+        and how long your skin type can stay in the sun before burning.
+      </p>
+    </div>
+
+    <div class="card form-card">
+      <%# Show a friendly error if the last search failed %>
+      <% if (error) { %>
+        <div class="alert" role="alert">
+          <strong>Hmm, that didn't work.</strong> <%= error %>
+        </div>
+      <% } %>
+
+      <%- include('../partials/searchForm', { skinTypes, values }) %>
+    </div>
+  </div>
+</section>
+
+<section class="container features">
+  <article>
+    <span class="feature-dot" style="background:#F18B00"></span>
+    <h2>Live UV index</h2>
+    <p>The current reading, colour-coded on the World Health Organization scale.</p>
+  </article>
+  <article>
+    <span class="feature-dot" style="background:#E53210"></span>
+    <h2>Sunscreen hours</h2>
+    <p>The window today when UV is 3 or higher and protection is recommended.</p>
+  </article>
+  <article>
+    <span class="feature-dot" style="background:#B567A4"></span>
+    <h2>Advice for your skin</h2>
+    <p>Minutes until burning without sunscreen, and the SPF to reach for.</p>
+  </article>
+</section>
+
+<script src="/js/main.js" defer></script>
+<%- include('../partials/footer') %>
